@@ -1,6 +1,5 @@
 # Exclude general directories that contain files that do not require versioning
 **/Backups/
-**/data/
 **/demo/
 **/customer/
 **/docs/
