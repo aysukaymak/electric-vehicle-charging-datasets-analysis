@@ -159,3 +159,22 @@ data casuser.ev_charging_station_clean;
 
 	where year(datepart(start_date)) in (2018, 2019) and fee<>0;
 run;
+
+*finding city of users by using driver_postal_code;
+data casuser.us_zip_codes;
+	set casuser.us_zip_codes;
+	rename city=driver_city;
+	rename state_name=driver_state_name;
+	rename county_name=driver_county_name;
+	rename zip=driver_postal_code;
+	rename lat=driver_lat;
+	rename lng=driver_lng;
+	keep zip lat lng city state_name county_name;
+run;
+
+proc sql;
+	create table casuser.ev_charging_station_clean as
+		select * from casuser.ev_charging_station_clean as s 
+		left join casuser.us_zip_codes as z
+		On s.driver_postal_code = z.driver_postal_code;
+quit;
