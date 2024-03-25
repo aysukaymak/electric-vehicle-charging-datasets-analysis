@@ -71,7 +71,7 @@ run;
 *feature extraxting;
 data casuser.ev_charging_station_clean;
 	set casuser.ev_charging_station_clean;
-	format start_time_of_day $9. end_time_of_day $9. energy_consumption_level $6. ghg_saving_level $6. gasoline_saving_level $6.;
+	format start_time_of_day $9. end_time_of_day $9. charging_month $9. energy_consumption_level $6. ghg_saving_level $6. gasoline_saving_level $6.;
 
 	*start time of day;
 	if hour(start_date) in (6,7,8,9,10,11) then start_time_of_day="Morning";
@@ -85,11 +85,48 @@ data casuser.ev_charging_station_clean;
 	else if hour(input(end_date, anydtdtm.)) in (17,18,19,20,21) then end_time_of_day="Evening";
 	else if hour(input(end_date, anydtdtm.)) in (22,23,0,1,2,3,4,5) then end_time_of_day="Night";
 
-	*month of charging time;
-	if month(datepart(start_date)) in (1,2,3) then charging_month="Winter";
-	else if month(datepart(start_date)) in (4,5,6) then charging_month="Spring";
-	else if month(datepart(start_date)) in (7,8,9) then charging_month="Summer";
-	else if month(datepart(start_date)) in (10,11,12) then charging_month="Autumn";
+	*days of charging time;
+	select(weekday(datepart(start_date)));
+      	when(1) day="Monday";
+      	when(2) day="Tuesday";
+		when(3) day="Wednesday";
+		when(4) day="Thursday";
+      	when(5) day="Friday";
+		when(6) day="Saturday";
+		when(7) day="Sunday";
+   	end;
+
+	*weekdays/weekend;
+	if weekday(datepart(start_date)) in (1,2,3,4,5) then do;
+		weekday=1;
+		weekend=0;
+	end;
+	else do;
+		weekday=0;
+		weekend=1;
+	end;
+
+	*season of charging time;
+	if month(datepart(start_date)) in (1,2,3) then charging_season="Winter";
+	else if month(datepart(start_date)) in (4,5,6) then charging_season="Spring";
+	else if month(datepart(start_date)) in (7,8,9) then charging_season="Summer";
+	else if month(datepart(start_date)) in (10,11,12) then charging_season="Autumn";
+		
+	*months of charging time;
+	select(month(datepart(start_date)));
+      	when(1) charging_month="January";
+      	when(2) charging_month="February";
+		when(3) charging_month="March";
+		when(4) charging_month="April";
+      	when(5) charging_month="May";
+		when(6) charging_month="June";
+		when(7) charging_month="July";
+		when(8) charging_month="August";
+		when(9) charging_month="September";
+      	when(10) charging_month="October";
+		when(11) charging_month="November";
+		when(12) charging_month="December";
+   	end;
 
 	*energy per hour;
 	if hour(charging_time) = 0 then do;
@@ -112,4 +149,13 @@ data casuser.ev_charging_station_clean;
 	if gasoline_savings_gallons_sqrt<=0.6892024 then gasoline_saving_level="Low";
 	else if gasoline_savings_gallons_sqrt>0.6892024 and gasoline_savings_gallons_sqrt<=1.1995833 then gasoline_saving_level="Medium";
 	else gasoline_saving_level="High";
+
+	*station infos;
+	station_phone="888-758-4389";
+	access_code="Public";
+	access_days_time="24 hours daily";
+	ev_network="ChargePoint Network";
+	geocode_status="GPS";
+
+	where year(datepart(start_date)) in (2018, 2019) and fee<>0;
 run;
